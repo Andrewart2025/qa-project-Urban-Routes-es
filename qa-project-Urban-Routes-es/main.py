@@ -1,13 +1,11 @@
 import data
 from selenium import webdriver
-from selenium.webdriver import Keys
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
-from selenium.common.exceptions import TimeoutException
-import time
 
 # no modificar
 def retrieve_phone_code(driver) -> str:
@@ -40,49 +38,39 @@ def retrieve_phone_code(driver) -> str:
 class UrbanRoutesPage:
     from_field = (By.ID, 'from')
     to_field = (By.ID, 'to')
-    request_taxi_button = (By.CSS_SELECTOR, ".button.round")
-    comfort_rate_option = (By.XPATH, "//div[contains(@class, 'tcard')]//div[contains(text(), 'Comfort')]")
-    phone_number_control = phone_number_control = (By.XPATH, "//div[@class='np-button']//div[contains(text(), 'Número de teléfono')]")
-    phone_number_input = (By.ID, 'phone')
-    phone_number_code_input = (By.ID, 'phone')
-    phone_number_next_button = (By.CSS_SELECTOR, '.full')
-    phone_number_confirm_button = (By.XPATH, "//button[contains(text(), 'Confirm')]")
-    phone_number = (By.CLASS_NAME, 'np-text')
-    payment_method_select = (By.XPATH, "//div[@class='pp-button filled']")
-    add_card_control = (By.XPATH, "//div[contains(text(), 'Agregar tarjeta')]")
-    card_number_input = (By.ID, "number")
-    card_code_input = (By.ID, "code")
-    card_pic_image = (By.CLASS_NAME, 'plc')
-    card_credentials_confirm_button = (By.XPATH, "//button[contains(text(), 'Agregar')]")
-    close_button_payment_method = (By.XPATH, "//div[@class='payment-picker open']//button")
-    current_payment_method = (By.CLASS_NAME, 'pp-value-text')
-    message_for_driver = (By.ID, 'comment')
-    option_switches = (By.CLASS_NAME, 'switch')
-    option_switches_inputs = (By.CLASS_NAME, 'switch-input')
-    add_enumerable_option = (By.CLASS_NAME, 'counter-plus')
-    amount_of_enumerable_option = (By.CLASS_NAME, 'counter-value')
-    order_car_button = (By.CLASS_NAME, 'smart-button-wrapper')
-    order_popup = (By.CLASS_NAME, 'order-body')
-    progress_bar = (By.CSS_SELECTOR, '.order-progress.visible')
-    driver_wait_time = (By.CLASS_NAME, 'order-header-time')
-    order_driver_rating = (By.CLASS_NAME, 'order-btn-rating')
-    order_driver_image = (By.XPATH, '//div[@class="order-button"]//img')
-    order_driver_name = (By.XPATH, '//div[@class="order-btn-group"][1]/div[2]')
+    boton_pedir_taxi = (By.CSS_SELECTOR, '.button.round')
+    boton_comfort = (By.XPATH, '//div[@class="tcard-title" and text()="Comfort"]')
+    boton_telefono = (By.CLASS_NAME, 'np-button')
+    telefono = (By.ID, 'phone')
+    boton_siguiente_telefono = (By.CSS_SELECTOR, '.button.full')
+    codigo = (By.ID, 'code')
+    boton_confirmar_codigo = (By.XPATH, '//button[@type="submit" and text()="Confirmar"]')
+    metodo_de_pago = (By.CSS_SELECTOR, '.pp-button.filled')
+    agregar_tarjeta = (By.CLASS_NAME, 'pp-plus-container')
+    # cvv = (By.CLASS_NAME, 'card-code-input')
+    cvv = (By.NAME, "code")
+    # numero_de_tarjeta = (By.CLASS_NAME, 'card-number-input')
+    numero_de_tarjeta = (By.ID, "number")
+    # confirmar_tarjeta = (By.XPATH, '//button[@type="submit" and text()="Agregar"]')
+    confirmar_tarjeta = (By.XPATH, "//div[@class='pp-buttons']/button[text()='Agregar']")
+    campo_mensaje = (By.XPATH, '//*[@id="root"]/div/div[3]/div[3]/div[2]/div[2]/div[3]/div')
+    manta_pañuelos = (
+    By.XPATH, '//*[@id="root"]/div/div[3]/div[3]/div[2]/div[2]/div[4]/div[2]/div[1]/div/div[2]/div/span')
+    helados = (By.XPATH,
+               '//*[@id="root"]/div/div[3]/div[3]/div[2]/div[2]/div[4]/div[2]/div[3]/div/div[2]/div[1]/div/div[2]/div/div[3]')
+    modal_taxi = (By.XPATH, '//*[@id="root"]/div/div[3]/div[4]/button')
 
     def __init__(self, driver):
         self.driver = driver
 
     def set_from(self, from_address):
-        #self.driver.find_element(*self.from_field).send_keys(from_address)
+        # self.driver.find_element(*self.from_field).send_keys(from_address)
         WebDriverWait(self.driver, 5).until(
-            EC.presence_of_element_located(self.from_field)
+            expected_conditions.presence_of_element_located(self.from_field)
         ).send_keys(from_address)
 
     def set_to(self, to_address):
-        #self.driver.find_element(*self.to_field).send_keys(to_address)
-        WebDriverWait(self.driver, 5).until(
-            EC.presence_of_element_located(self.to_field)
-        ).send_keys(to_address)
+        self.driver.find_element(*self.to_field).send_keys(to_address)
 
     def get_from(self):
         return self.driver.find_element(*self.from_field).get_property('value')
@@ -90,196 +78,154 @@ class UrbanRoutesPage:
     def get_to(self):
         return self.driver.find_element(*self.to_field).get_property('value')
 
-    def set_route(self, from_address, to_address):
-        self.set_from(from_address)
-        self.set_to(to_address)
+    def set_route(self, address_from, address_to):
+        self.set_from(address_from)
+        self.set_to(address_to)
 
-    def get_request_taxi_button(self):
+    def get_boton_pedir_taxi(self):
         return WebDriverWait(self.driver, 5).until(
-            EC.element_to_be_clickable(self.request_taxi_button)
+            expected_conditions.element_to_be_clickable(self.boton_pedir_taxi)
         )
 
-    def click_on_request_taxi_button(self):
-        self.get_request_taxi_button().click()
+    def set_boton_pedir_taxi(self):
+        self.get_boton_pedir_taxi().click()
 
-    def get_comfort_rate_option(self):
+    def get_boton_comfort(self):
         return WebDriverWait(self.driver, 5).until(
-            EC.element_to_be_clickable(self.comfort_rate_option)
+            expected_conditions.element_to_be_clickable(self.boton_comfort)
         )
 
-    def click_on_comfort_rate_option(self):
-        self.get_comfort_rate_option().click()
+    def set_boton_comfort(self):
+        self.get_boton_comfort().click()
 
-# Phone number
-    def get_phone_number_control(self):
-        return WebDriverWait(self.driver,10).until(
-            EC.element_to_be_clickable(self.phone_number_control)
+    def get_boton_telefono(self):
+        return WebDriverWait(self.driver, 5).until(
+            expected_conditions.element_to_be_clickable(self.boton_telefono)
         )
 
-    def click_on_phone_number_control(self):
-        self.get_phone_number_control().click()
+    def set_boton_telefono(self):
+        self.get_boton_telefono().click()
 
-    def get_phone_number_input(self):
-        return WebDriverWait(self.driver,10).until(
-            EC.element_to_be_clickable(self.phone_number_input)
+    def get_telefono(self):
+        return self.driver.find_element(*self.telefono).get_property('value')
+
+    def set_telefono(self, telefono):
+        self.driver.find_element(*self.telefono).send_keys(telefono)
+
+    def rellenar_telefono(self, telefono):
+        self.set_telefono(telefono)
+
+    def get_boton_siguiente_telefono(self):
+        return WebDriverWait(self.driver, 5).until(
+            expected_conditions.element_to_be_clickable(self.boton_siguiente_telefono)
         )
 
-    def click_on_phone_number_input(self):
-        self.get_phone_number_input().click()
+    def set_boton_siguiente_telefono(self):
+        self.get_boton_siguiente_telefono().click()
 
-    def enter_phone_number(self, phone_number):
-        # Primero clic en el label para activar el input
-        WebDriverWait(self.driver, 10).until(
-            EC.element_to_be_clickable(self.phone_number_label)
-        ).click()
-
-
-        WebDriverWait(self.driver, 10).until(
-            EC.presence_of_element_located(self.phone_number_input)
-        ).send_keys(phone_number)
-
-    def click_on_phone_number_label(self):
-        phone_label = WebDriverWait(self.driver, 10).until(
-            EC.element_to_be_clickable((By.CSS_SELECTOR, "label[for='phone']"))
-        )
-        phone_label.click()
-
-    def click_on_phone_number_next_button(self):
-        next_button = WebDriverWait(self.driver, 10).until(
-            EC.element_to_be_clickable(self.phone_number_next_button)
-        )
-        next_button.click()
-
-    def enter_sms_code(self, code):
-        input_field = WebDriverWait(self.driver, 10).until(
-            EC.presence_of_element_located((By.ID, "code"))  # input visible en tu imagen
-        )
-        input_field.send_keys(code)
-
-    def click_on_phone_number_confirm_button(self):
-        WebDriverWait(self.driver, 10).until(
-            EC.element_to_be_clickable(self.phone_number_confirm_button)
-        ).click()
-
-#Credit Card
-    def open_payment_method_modal(self):
-        element = WebDriverWait(self.driver, 10).until(
-            EC.visibility_of_element_located(self.payment_method_select)
-        )
-        self.driver.execute_script("arguments[0].scrollIntoView(true);", element)
-        element.click()
-
-    def click_add_card_option(self):
-        WebDriverWait(self.driver, 10).until(
-            EC.element_to_be_clickable(self.add_card_control)
-        ).click()
-
-    def enter_card_details(self, number, code):
-        number_input = WebDriverWait(self.driver, 10).until(
-            EC.visibility_of_element_located(self.card_number_input)
-        )
-        number_input.send_keys(number)
-
-        # Sleep opcional para depurar delays visuales
-        import time
-        time.sleep(1.5)
-
-        # Espera visibilidad (no clickable)
-        cvv_input = WebDriverWait(self.driver, 10).until(
-            EC.visibility_of_element_located(self.card_code_input)
+    def get_mensaje_codigo(self):
+        return WebDriverWait(self.driver, 5).until(
+            expected_conditions.element_to_be_clickable(self.codigo)
         )
 
-        self.driver.execute_script("arguments[0].scrollIntoView(true);", cvv_input)
-        cvv_input.send_keys(code)
-        cvv_input.send_keys(Keys.TAB)
+    def set_mensaje_codigo(self, codigo):
+        codigo = retrieve_phone_code(self.driver)
+        self.get_mensaje_codigo().send_keys(codigo)
 
-        # También podrías hacer clic en otro elemento para perder foco
-        try:
-            other = WebDriverWait(self.driver, 5).until(
-                EC.element_to_be_clickable((By.CLASS_NAME, "plc"))
-            )
-            other.click()
-        except:
-            pass
-
-    def click_confirm_card_credentials(self):
-        WebDriverWait(self.driver, 10).until(
-            EC.element_to_be_clickable(self.card_credentials_confirm_button)
-        ).click()
-
-    def enter_driver_message(self, message):
-        message_input = WebDriverWait(self.driver, 10).until(
-            EC.visibility_of_element_located(self.message_for_driver)
-        )
-        message_input.clear()
-        message_input.send_keys(message)
-
-    # Opciones adicionales
-    def enable_all_switches(self):
-        switches = WebDriverWait(self.driver, 5).until(
-            EC.presence_of_all_elements_located(self.option_switches)
-        )
-        inputs = WebDriverWait(self.driver, 5).until(
-            EC.presence_of_all_elements_located(self.option_switches_inputs)
-        )
-        for switch, checkbox in zip(switches, inputs):
-            if not checkbox.is_selected():
-                self.driver.execute_script("arguments[0].click();", switch)
-
-    def add_ice_creams(self, count=2):
-        plus_buttons = WebDriverWait(self.driver, 5).until(
-            EC.presence_of_all_elements_located(self.add_enumerable_option)
-        )
-        ice_cream_button = plus_buttons[-1]
-        for _ in range(count):
-            ice_cream_button.click()
-            time.sleep(0.3)
-
-    # Paso 1: Confirmar pedido
-    def click_order_car_button(self):
-        button = WebDriverWait(self.driver, 10).until(
-            EC.element_to_be_clickable(self.order_car_button)
-        )
-        button.click()
-
-    # Paso 2: Esperar a que aparezca el modal de pedido (búsqueda activa)
-    def wait_for_order_popup(self):
-        WebDriverWait(self.driver, 10).until(
-            EC.visibility_of_element_located(self.order_popup)
+    def get_boton_confirmar_codigo(self):
+        return WebDriverWait(self.driver, 5).until(
+            expected_conditions.element_to_be_clickable(self.boton_confirmar_codigo)
         )
 
-    # Paso 3: Esperar a que aparezca la barra de progreso (búsqueda del conductor)
-    def wait_for_progress_bar(self):
-        WebDriverWait(self.driver, 20).until(
-            EC.visibility_of_element_located(self.progress_bar)
+    def set_boton_confirmar_codigo(self):
+        self.get_boton_confirmar_codigo().click()
+
+    def get_metodo_de_pago(self):
+        return WebDriverWait(self.driver, 5).until(
+            expected_conditions.element_to_be_clickable(self.metodo_de_pago)
         )
 
-    # Paso 4: Esperar a que se muestre la información del conductor
-    def wait_for_driver_info(self):
-        import time
+    def set_metodo_de_pago(self):
+        self.get_metodo_de_pago().click()
 
-        # Espera a que aparezca el bloque de info del conductor
-        WebDriverWait(self.driver, 30).until(
-            EC.presence_of_element_located((By.CLASS_NAME, 'order-btn-group'))
+    def get_agregar_tarjeta(self):
+        return WebDriverWait(self.driver, 5).until(
+            expected_conditions.element_to_be_clickable(self.agregar_tarjeta)
         )
 
-        # Guarda una captura para inspección visual
-        self.driver.save_screenshot("pantalla_final.png")
+    def set_agregar_tarjeta(self):
+        self.get_agregar_tarjeta().click()
 
-        # Opcional: imprime la info visible
-        try:
-            name = self.driver.find_element(By.XPATH, '//div[@class="order-btn-group"][1]/div[2]').text
-            rating = self.driver.find_element(By.CLASS_NAME, 'order-btn-rating').text
-            print(f"✅ Conductor asignado: {name}, rating: {rating}")
-        except Exception as e:
-            print("⚠️ No se pudo leer el nombre o rating:", e)
+    def get_cvv(self):
+        return WebDriverWait(self.driver, 5).until(
+            expected_conditions.presence_of_element_located(self.cvv)
+        )
 
-        # Espera un poco para ver el resultado final si corres en navegador visible
-        time.sleep(3)
+    def set_cvv(self):
+        self.get_cvv().click()
+
+    def set_rellenar_cvv(self, card_code):
+        # self.set_cvv()
+        self.get_cvv().send_keys(card_code)
+
+    def get_numero_de_tarjeta(self):
+        return WebDriverWait(self.driver, 5).until(
+            expected_conditions.presence_of_element_located(self.numero_de_tarjeta)
+        )
+
+    def set_numero_de_tarjeta(self):
+        self.get_numero_de_tarjeta().click()
+
+    def set_rellenar_tarjeta(self, card_number):
+        # self.set_numero_de_tarjeta()
+        self.get_numero_de_tarjeta().send_keys(card_number)
+
+    def get_confirmar_tarjeta(self):
+        return WebDriverWait(self.driver, 5).until(
+            expected_conditions.element_to_be_clickable(self.confirmar_tarjeta)
+        )
+
+    def set_confirmar_tarjeta(self):
+        self.get_confirmar_tarjeta().click()
+
+    def get_campo_mensaje(self):
+        return WebDriverWait(self.driver, 5).until(
+            expected_conditions.element_to_be_clickable(self.campo_mensaje)
+        )
+
+    def set_campo_mensaje(self):
+        self.get_campo_mensaje().click()
+
+    def set_rellenar_mensaje(self, message_for_driver):
+        self.set_campo_mensaje()
+
+    def get_manta_pañuelos(self):
+        return WebDriverWait(self.driver, 5).until(
+            expected_conditions.element_to_be_clickable(self.manta_pañuelos)
+        )
+
+    def set_manta_pañuelos(self):
+        self.get_manta_pañuelos().click()
+
+    def get_helados(self):
+        return WebDriverWait(self.driver, 5).until(
+            expected_conditions.element_to_be_clickable(self.helados)
+        )
+
+    def set_helados(self):
+        self.get_helados().click()
+        self.get_helados().click()
+
+    def get_modal_taxi(self):
+        return WebDriverWait(self.driver, 5).until(
+            expected_conditions.element_to_be_clickable(self.modal_taxi)
+        )
+
+    def set_modal_taxi(self):
+        self.get_modal_taxi().click()
 
 
 class TestUrbanRoutes:
-
     driver = None
 
     @classmethod
@@ -287,7 +233,6 @@ class TestUrbanRoutes:
         # no lo modifiques, ya que necesitamos un registro adicional habilitado para recuperar el código de confirmación del teléfono
         options = Options()
         options.set_capability("goog:loggingPrefs", {'performance': 'ALL'})
-
         cls.driver = webdriver.Chrome(service=Service(), options=options)
 
     def test_set_route(self):
@@ -299,188 +244,61 @@ class TestUrbanRoutes:
         assert routes_page.get_from() == address_from
         assert routes_page.get_to() == address_to
 
-    def test_comfort_rate_option(self):
+    def test_boton_pedir_taxi(self):
         self.test_set_route()
         routes_page = UrbanRoutesPage(self.driver)
-        routes_page.click_on_request_taxi_button()
-        routes_page.click_on_comfort_rate_option()
+        routes_page.set_boton_pedir_taxi()
+        routes_page.set_boton_comfort()
 
-        comfort_rate = routes_page.get_comfort_rate_option().text
-        comfort_text = "comfort"
-
-    def test_phone_number_control(self):
-        self.test_set_route()
+    def test_boton_telefono(self):
+        self.test_boton_pedir_taxi()
         routes_page = UrbanRoutesPage(self.driver)
-        routes_page.click_on_request_taxi_button()
-        routes_page.click_on_comfort_rate_option()
-        routes_page.click_on_phone_number_control()
-        routes_page.click_on_phone_number_label()
-        input_element = routes_page.get_phone_number_input()
-        self.driver.execute_script("arguments[0].scrollIntoView(true);", input_element)
-        self.driver.execute_script("arguments[0].click();", input_element)
-        input_element.send_keys(data.phone_number)
+        routes_page.set_boton_telefono()
+        telefono = data.phone_number
+        routes_page.rellenar_telefono(telefono)
+        routes_page.set_boton_siguiente_telefono()
+        routes_page.set_mensaje_codigo(self)
+        routes_page.set_boton_confirmar_codigo()
+        assert routes_page.get_telefono() == data.phone_number
 
-        assert input_element.get_attribute("value") == data.phone_number
-
-    def test_phone_number_control(self):
-        self.test_set_route()
+    def test_metodo_de_pago(self):
+        self.test_boton_pedir_taxi()
         routes_page = UrbanRoutesPage(self.driver)
+        routes_page.set_metodo_de_pago()
+        routes_page.set_agregar_tarjeta()
+        routes_page.set_cvv()
+        # cvv = data.card_code
+        # routes_page.set_rellenar_cvv(cvv)
+        routes_page.set_numero_de_tarjeta()
+        numero_de_tarjeta = data.card_number
+        routes_page.set_rellenar_tarjeta(numero_de_tarjeta)
+        routes_page.set_rellenar_cvv(data.card_code)
+        routes_page.set_confirmar_tarjeta()
 
-        routes_page.click_on_request_taxi_button()
-        routes_page.click_on_comfort_rate_option()
-        routes_page.click_on_phone_number_control()
-
-
-        routes_page.click_on_phone_number_label()
-
-
-        phone_input = routes_page.get_phone_number_input()
-        self.driver.execute_script("arguments[0].scrollIntoView(true);", phone_input)
-        phone_input.send_keys(data.phone_number)
-
-        routes_page.click_on_phone_number_next_button()
-
-    def test_phone_number_control(self):
-        self.test_set_route()
+    def test_mensaje_para_conductor(self):
+        self.test_boton_pedir_taxi()
         routes_page = UrbanRoutesPage(self.driver)
+        routes_page.set_campo_mensaje()
+        campo_mensaje = data.message_for_driver
+        routes_page.set_rellenar_mensaje(campo_mensaje)
 
-        routes_page.click_on_request_taxi_button()
-        routes_page.click_on_comfort_rate_option()
-        routes_page.click_on_phone_number_control()
-
-        routes_page.click_on_phone_number_label()
-        input_field = routes_page.get_phone_number_input()
-        self.driver.execute_script("arguments[0].scrollIntoView(true);", input_field)
-        input_field.send_keys(data.phone_number)
-
-        routes_page.click_on_phone_number_next_button()
-
-        # Obtener e ingresar el código de confirmación
-        code = retrieve_phone_code(self.driver)
-        routes_page.enter_sms_code(code)
-        routes_page.click_on_phone_number_confirm_button()
-
-    def test_add_credit_card(self):
-        self.driver.get(data.urban_routes_url)
+    def test_manta_pañuelos(self):
+        self.test_boton_pedir_taxi()
         routes_page = UrbanRoutesPage(self.driver)
-        routes_page.set_route(data.address_from, data.address_to)
-        routes_page.click_on_request_taxi_button()
-        routes_page.click_on_comfort_rate_option()
-        routes_page.click_on_phone_number_control()
-        routes_page.click_on_phone_number_label()
-        phone_input = routes_page.get_phone_number_input()
-        phone_input.send_keys(data.phone_number)
-        routes_page.click_on_phone_number_next_button()
-        code = retrieve_phone_code(self.driver)
-        routes_page.enter_sms_code(code)
-        routes_page.click_on_phone_number_confirm_button()
+        routes_page.set_manta_pañuelos()
 
-        routes_page.open_payment_method_modal()
-        routes_page.click_add_card_option()
-        routes_page.enter_card_details(data.card_number, data.card_code)
-        routes_page.click_confirm_card_credentials()
-
-    def test_driver_message(self):
-        self.driver.get(data.urban_routes_url)
+    def test_helados(self):
+        self.test_boton_pedir_taxi()
         routes_page = UrbanRoutesPage(self.driver)
+        routes_page.set_helados()
 
-        # Configura dirección
-        routes_page.set_route(data.address_from, data.address_to)
-
-        # Selecciona tarifa
-        routes_page.click_on_request_taxi_button()
-        routes_page.click_on_comfort_rate_option()
-
-        # Número de teléfono
-        routes_page.click_on_phone_number_control()
-        routes_page.click_on_phone_number_label()
-        phone_input = routes_page.get_phone_number_input()
-        phone_input.send_keys(data.phone_number)
-        routes_page.click_on_phone_number_next_button()
-        code = retrieve_phone_code(self.driver)
-        routes_page.enter_sms_code(code)
-        routes_page.click_on_phone_number_confirm_button()
-
-        # Salta paso de tarjeta si falla, y avanza al mensaje
-        message = "Por favor, toque el claxon al llegar."
-        routes_page.enter_driver_message(message)
-
-        # Validación
-        message_box = WebDriverWait(self.driver, 5).until(
-            EC.presence_of_element_located((By.ID, 'comment'))
-        )
-        assert message_box.get_attribute("value") == message
-
-    def test_extra_options(self):
-        self.driver.get(data.urban_routes_url)
+    def test_modal_taxi(self):
+        self.test_boton_telefono()
+        self.test_mensaje_para_conductor()
+        self.test_manta_pañuelos()
+        self.test_helados()
         routes_page = UrbanRoutesPage(self.driver)
-
-        # Flujo hasta aquí
-        routes_page.set_route(data.address_from, data.address_to)
-        routes_page.click_on_request_taxi_button()
-        routes_page.click_on_comfort_rate_option()
-
-        routes_page.click_on_phone_number_control()
-        routes_page.click_on_phone_number_label()
-        phone_input = routes_page.get_phone_number_input()
-        phone_input.send_keys(data.phone_number)
-        routes_page.click_on_phone_number_next_button()
-        code = retrieve_phone_code(self.driver)
-        routes_page.enter_sms_code(code)
-        routes_page.click_on_phone_number_confirm_button()
-
-        # Agrega mensaje
-        routes_page.enter_driver_message("Trae una manta, por favor.")
-
-        # Activar switches (manta y pañuelos)
-        routes_page.enable_all_switches()
-
-        # Agregar 2 helados
-        routes_page.add_ice_creams(2)
-
-        # Validar número de helados seleccionados
-        value_elements = WebDriverWait(self.driver, 5).until(
-            EC.presence_of_all_elements_located(routes_page.amount_of_enumerable_option)
-        )
-        ice_cream_count = value_elements[-1].text
-        assert ice_cream_count == "2"
-
-    def test_confirm_order_and_driver_info(self):
-        self.driver.get(data.urban_routes_url)
-        routes_page = UrbanRoutesPage(self.driver)
-
-        # Flujo completo hasta el botón de pedido
-        routes_page.set_route(data.address_from, data.address_to)
-        routes_page.click_on_request_taxi_button()
-        routes_page.click_on_comfort_rate_option()
-
-        routes_page.click_on_phone_number_control()
-        routes_page.click_on_phone_number_label()
-        phone_input = routes_page.get_phone_number_input()
-        phone_input.send_keys(data.phone_number)
-        routes_page.click_on_phone_number_next_button()
-        code = retrieve_phone_code(self.driver)
-        routes_page.enter_sms_code(code)
-        routes_page.click_on_phone_number_confirm_button()
-
-        routes_page.enter_driver_message("Hola, toca claxon por favor.")
-        routes_page.enable_all_switches()
-        routes_page.add_ice_creams(2)
-
-        # Paso: Confirmar el pedido
-        routes_page.click_order_car_button()
-
-        # Esperar modal de búsqueda
-        routes_page.wait_for_order_popup()
-        routes_page.wait_for_progress_bar()
-
-        # Esperar información del conductor
-        self.driver.save_screenshot("pantalla_final.png")
-        routes_page.wait_for_driver_info()
-
-        # Validaciones opcionales (verifica si la info se carga en el DOM)
-        assert "4.9" in self.driver.page_source
-        assert "Leon" in self.driver.page_source or "order-btn-group" in self.driver.page_source
+        routes_page.set_modal_taxi()
 
     @classmethod
     def teardown_class(cls):
